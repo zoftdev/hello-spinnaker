@@ -1,0 +1,70 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-deploy-spin
+  namespace: snail
+  labels:
+    app: test-deploy-spin
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000
+  selector:
+    app: test-deploy-spin
+
+  type: ClusterIP
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deploy-spin
+  namespace: snail
+  labels:
+    app: test-deploy-spin
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test-deploy-spin
+  template:
+    metadata:
+      labels:
+        app: test-deploy-spin
+    spec:
+      containers:
+      - name: test-deploy-spin
+        image: zoftdev/redirect-test
+        imagePullPolicy: Always
+        env:
+        ports:
+        - containerPort: 3000
+        resources:
+          requests:
+            memory: 300Mi
+            cpu: 200m
+          limits:
+            memory: 300Mi
+            cpu: 200m
+      # imagePullSecrets:
+      # - name: reghbpr01
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: test-deploy-spin
+  namespace: snail
+  labels:
+    app: test-deploy-spin 
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+  - host: test-deploy-spin.snail.arctic.true.th
+    http:
+      paths:
+      - backend:
+          serviceName: test-deploy-spin
+          servicePort: 80
+        path: /
